@@ -1,12 +1,14 @@
 import time
 import os
+import json
 from google.oauth2.credentials import Credentials
 from googleapiclient.errors import HttpError
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
 # import secrets file
-
+with open('secrets.json', 'r') as f:
+    secrets = json.load(f)
 
 # Set the time interval for uploading files (in seconds)
 time_interval = 3600  # upload a file every hour
@@ -15,10 +17,10 @@ time_interval = 3600  # upload a file every hour
 desktop_folder = '/Users/Nick/Desktop/DJstuff'
 
 # Set the ID of the folder in your Google Drive account to upload files to
-folder_id = 'your_folder_id'
+folder_id = secrets['folder_id']
 
-# Set the MIME type of the file to upload
-mime_type = 'application/pdf'  # replace with the desired MIME type
+# Set the MIME type to for mp3
+mime_type = 'audio/mpeg' 
 
 # Set the Google Drive API version and credentials
 api_version = 'v3'
