@@ -14,7 +14,7 @@ with open('secrets.json', 'r') as f:
 time_interval = 3600  # upload a file every hour
 
 # Set the path to the folder on your desktop
-desktop_folder = '/Users/Nick/Desktop/DJstuff'
+desktop_folder = '/Users/nickrinaldi/Desktop'
 
 # Set the ID of the folder in your Google Drive account to upload files to
 folder_id = secrets['folder_id']
@@ -24,8 +24,8 @@ mime_type = 'audio/mpeg'
 
 # Set the Google Drive API version and credentials
 api_version = 'v3'
-creds = Credentials.from_authorized_user_file('path/to/your/credentials.json')
-# test
+creds = Credentials.from_authorized_user_file('credentials.json')
+
 
 def upload_file_to_drive(file_path, folder_id, mime_type):
     """
