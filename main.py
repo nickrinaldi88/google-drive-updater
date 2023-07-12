@@ -14,10 +14,12 @@ with open('secrets.json', 'r') as f:
 time_interval = 3600  # upload a file every hour
 
 # Set the path to the folder on your desktop
-desktop_folder = '/Users/nickrinaldi/Desktop/Mixing-Music/Desktop'
+desktop_folder = '/Users/nickrinaldi/Desktop/Mixing-Music/'
 
 # Set the ID of the folder in your Google Drive account to upload files to
 folder_id = secrets['folder_id']
+
+print(folder_id)
 
 # Set the MIME type to for mp3
 mime_type = 'audio/mpeg' 
@@ -25,23 +27,7 @@ mime_type = 'audio/mpeg'
 # Set the Google Drive API version and credentials
 api_version = 'v3'
 creds = Credentials.from_service_account_file('credentials.json')
-
-
-service = build('drive', api_version, credentials=creds)
-
-    file_metadata = {'parents': [folder_id]}
-    media = MediaFileUpload(file_path, mimetype=mime_type)
-
-    try:
-        file = service.files().create(
-            body=file_metadata,
-            media_body=media,
-            fields='id'
-        ).execute()
-        print(f'File ID: {file.get("id")} uploaded successfully.')
-    except HttpError as error:
-        print(f'An error occurred: {error}')
-        file = None
+print("hi")
 
 
 def upload_file_to_drive(file_path, folder_id, mime_type):
