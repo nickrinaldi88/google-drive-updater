@@ -5,6 +5,7 @@ from google.oauth2.service_account import Credentials
 from googleapiclient.errors import HttpError
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
+import platform
 
 # import secrets file
 with open('secrets.json', 'r') as f:
@@ -13,8 +14,11 @@ with open('secrets.json', 'r') as f:
 # Set the time interval for uploading files (in seconds)
 time_interval = 3600  # upload a file every hour
 
-# Set the path to the folder on your desktop
-desktop_folder = '/Users/nickrinaldi/Desktop/Mixing-Music/'
+# check os, based on result, select folder path
+if platform.system() == 'Windows':
+    desktop_folder = 'C:\\Users\\Nick\\Desktop\\Mixing_Music'
+else:
+    desktop_folder = '/Users/nickrinaldi/Desktop/Mixing-Music/'
 
 # Set the ID of the folder in your Google Drive account to upload files to
 folder_id = secrets['folder_id']
@@ -37,9 +41,12 @@ def upload_file_to_drive(file_path, folder_id, mime_type):
 
     # builds a file 
     service = build('drive', api_version, credentials=creds)
+    
 
     file_metadata = {'parents': [folder_id]}
     media = MediaFileUpload(file_path, mimetype=mime_type)
+    print(dir(media))
+    print(media.mimetype)
 
     try:
         file = service.files().create(
@@ -62,4 +69,9 @@ while True:
             upload_file_to_drive(file_path, folder_id, mime_type)
 
     time.sleep(time_interval)
+
+
+# TODO:
+    # try a file id instead of a folder id - it may be looking for that
+    # -confirm creds.json works
 
