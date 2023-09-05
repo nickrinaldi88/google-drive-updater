@@ -33,6 +33,45 @@ api_version = 'v3'
 creds = Credentials.from_service_account_file('credentials.json')
 print("hi")
 
+def build_drive_service(credentials_path, scopes):
+
+    # check for token 
+
+    creds = None
+    if os.path.exists('token.json'):
+        creds = Credentials.from_authorized_user_file('token.json', scopes=scopes)
+
+    # generate token if not exist
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                'credentials.json', scopes)
+            creds = flow.run_local_server(port=0)
+      
+        with open('token.json', 'w') as token:
+            token.write(creds.to_json())
+
+    # build drive service
+
+    drive_service = build('drive', 'v3', credentials=creds)
+    return drive_service
+
+def count_items_in_folder(folder_id):
+
+    """
+    Returns count of items in a folder
+    """
+
+    results = drive_service.files().list(
+        q=f"'{folder_id}' in parents",
+        fields="files(id, name)"
+    ).execute()
+
+    items = results.get('files', [])
+    return len(items)
+
 
 def upload_file_to_drive(file_path, folder_id, mime_type):
     """
