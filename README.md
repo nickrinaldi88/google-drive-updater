@@ -1,7 +1,8 @@
 # google-drive-updater
 
 ## TODO
-##  - Run code in main.py; refactor
+##  - Build code in test.py
+##  - Check docs for drive service methods to upload
 ##  - Double check folder_id
 ##  - Test file upload
 ##  - Automation

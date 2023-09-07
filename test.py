@@ -10,7 +10,6 @@ scopes = ['https://www.googleapis.com/auth/drive']
 
 # build drive service
 
-
 def build_drive_service(credentials_path, scopes):
 
     # check for token 
@@ -54,8 +53,21 @@ def count_items_in_folder(folder_id):
         fields="files(id, name)"
     ).execute()
 
+    print("results")
+    print(results)
+
     items = results.get('files', [])
     return len(items)
+
+# upload folder function
+def upload_to_folder(folder_id):
+
+
+    # look up docs for drive_services.files() methods
+    # results = drive_service.files().list(q=f"'{folder_id}' in parents",fields="files(id, name)").execute()
+
+
+    pass
 
 
 # execution
@@ -74,5 +86,8 @@ if __name__ == "__main__":
     folder_id = secrets['folder_id']
 
     val = count_items_in_folder(folder_id)
+
+    upload_to_folder(folder_id)
+    
   
 
