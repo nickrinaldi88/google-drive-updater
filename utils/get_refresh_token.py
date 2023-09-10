@@ -19,5 +19,5 @@ def get_refresh_token(client_credentials_path):
     # yield to also return token?
 
 if __name__ == "__main__":
-    client_credentials_path = 'credentials.json'
+    client_credentials_path = '/Users/nickrinaldi/dev/google-drive-updater/credentials.json'
     get_refresh_token(client_credentials_path)
