@@ -11,6 +11,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 scopes = ['https://www.googleapis.com/auth/drive']
 
 file_name = 'flava.mp3'
+folder_path = '/Users/nickrinaldi/Desktop/Dubstep-Test'
 
 token_file = 'token.json'
 
@@ -50,15 +51,6 @@ def remove_token(token_file):
         time.sleep(.5)
 
     return None
-# def add_token_to_creds(refresh_token):
-
-#     with open('credentials.json', 'r') as creds_file:
-#         credentials = json.load(creds_file)
-
-#     credentials['installed']['refresh_token'] = refresh_token
-
-#     with open('credentials.json', 'w') as creds_file:
-#         json.dump(credentials, creds_file, indent=4)
 
 # count items
 def count_items_in_folder(folder_id):
@@ -74,12 +66,32 @@ def count_items_in_folder(folder_id):
     items = results.get('files', [])
     return len(items)
 
+def parse_folder(folder_path):
+
+    items = []
+
+    if os.path.exists(folder_path):
+
+        items = [os.path.join(folder_path, item) for item in os.listdir(folder_path)]
+    else:
+        print(f"The folder '{folder_path}' does not exist")
+
+    return items
+        # for item in os.listdir(folder_path):
+        #     item_path = os.path.join(folder_path, item)
+        #     items.append(item_path)
+
+
 # upload folder function
 def upload_to_folder(file_name, drive_service):
+
+    # parse folder for items added after today
 
     file_metadata = {
         'name': file_name
     }
+
+
     media = MediaFileUpload('flava.mp3', mimetype=None, resumable=True)
     request = drive_service.files().create(
         body=file_metadata,
@@ -98,7 +110,12 @@ def upload_to_folder(file_name, drive_service):
     # look up docs for drive_services.files() methods
     # results = drive_service.files().list(q=f"'{folder_id}' in parents",fields="files(id, name)").execute()
 
+def remove_spaces(folder_path):
+    # Function removes spaces from file name 
 
+    if os.path.exists(folder_path):
+        for item in os.listdir(folder_path):
+            # item.regex(spaces) -> remove spaces
 
 # execution
 if __name__ == "__main__":
@@ -106,7 +123,6 @@ if __name__ == "__main__":
     # remove file if exists
     remove_token(token_file)
     
-
     # Load your secrets and credentials
     with open('secrets.json') as secrets_file:
         secrets = json.load(secrets_file)
@@ -121,7 +137,10 @@ if __name__ == "__main__":
 
     val = count_items_in_folder(folder_id)
 
-    upload_to_folder(file_name, drive_service)
+    items = parse_folder(folder_path)
+
+    for item in items:
+        upload_to_folder(item, drive_service)
 
   
 
