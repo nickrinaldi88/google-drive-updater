@@ -1,6 +1,7 @@
 # google-drive-updater
 
 ## TODO
+##  - Alter file naming convention
 ##  - Determine silent permission grant
-##  - Implement/Test iterative upload logic
 ##  - Automation
+##  - Unit Tests
