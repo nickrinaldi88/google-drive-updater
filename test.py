@@ -1,6 +1,7 @@
 import os
 import json
 import time
+from datetime import datetime, timedelta
 # from google.oauth2.credentials import Credentials
 from google.oauth2._credentials_async import Credentials
 from googleapiclient.discovery import build, MediaFileUpload
@@ -68,18 +69,25 @@ def count_items_in_folder(folder_id):
 
 def parse_folder(folder_path):
 
+    # get current time
+    current_datetime = datetime.now()
+    one_day_ago = current_datetime - timedelta(days=1)
+
     items = []
 
     if os.path.exists(folder_path):
+        for item in os.listdir(folder_path):
+            item_path = os.path.join(folder_path, item)
+            create_time = datetime.fromtimestamp(os.path.getctime(item_path)) # check if create time is greater than now
+            items.append(item_path)
+            # print(create_time)
+            # if create_time > one_day_ago:
 
-        items = [os.path.join(folder_path, item) for item in os.listdir(folder_path)]
+                # items.append(item_path)
     else:
         print(f"The folder '{folder_path}' does not exist")
 
     return items
-        # for item in os.listdir(folder_path):
-        #     item_path = os.path.join(folder_path, item)
-        #     items.append(item_path)
 
 
 # upload folder function
@@ -90,7 +98,6 @@ def upload_to_folder(file_name, drive_service):
     file_metadata = {
         'name': file_name
     }
-
 
     media = MediaFileUpload('flava.mp3', mimetype=None, resumable=True)
     request = drive_service.files().create(
@@ -110,18 +117,18 @@ def upload_to_folder(file_name, drive_service):
     # look up docs for drive_services.files() methods
     # results = drive_service.files().list(q=f"'{folder_id}' in parents",fields="files(id, name)").execute()
 
-def remove_spaces(folder_path):
-    # Function removes spaces from file name 
+# def remove_spaces(folder_path):
+#     # Function removes spaces from file name 
 
-    if os.path.exists(folder_path):
-        for item in os.listdir(folder_path):
-            # item.regex(spaces) -> remove spaces
+#     if os.path.exists(folder_path):
+#         for item in os.listdir(folder_path):
+#             # item.regex(spaces) -> remove spaces
 
 # execution
 if __name__ == "__main__":
 
     # remove file if exists
-    remove_token(token_file)
+    # remove_token(token_file)
     
     # Load your secrets and credentials
     with open('secrets.json') as secrets_file:
@@ -138,6 +145,7 @@ if __name__ == "__main__":
     val = count_items_in_folder(folder_id)
 
     items = parse_folder(folder_path)
+    print(items)
 
     for item in items:
         upload_to_folder(item, drive_service)
