@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from google.oauth2._credentials_async import Credentials
 from googleapiclient.discovery import build, MediaFileUpload
 from google_auth_oauthlib.flow import InstalledAppFlow
-
+from google.oauth2 import service_account
 
 # scope
 scopes = ['https://www.googleapis.com/auth/drive']
@@ -16,29 +16,14 @@ folder_path = '/Users/nickrinaldi/Desktop/Dubstep-Test'
 
 token_file = 'token.json'
 
+
 # build drive service
 
 def build_drive_service(credentials_path, scopes):
 
-    # check for token 
-
-    creds = None
-    if os.path.exists('token.json'):
-        creds = Credentials.from_authorized_user_file('token.json', scopes=scopes)
-
-    # generate token if not exist
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', scopes)
-            creds = flow.run_local_server(port=0)
-      
-        with open('token.json', 'w') as token:
-            token.write(creds.to_json())
-
-    # build drive service
+    # Create a credentials object from the JSON key file
+    creds = service_account.Credentials.from_service_account_file(
+        credentials_path, scopes=scopes)
 
     drive_service = build('drive', 'v3', credentials=creds)
     return drive_service
@@ -99,7 +84,7 @@ def upload_to_folder(file_name, drive_service):
         'name': file_name
     }
 
-    media = MediaFileUpload('flava.mp3', mimetype=None, resumable=True)
+    media = MediaFileUpload(file_metadata['name'], mimetype=None, resumable=True)
     request = drive_service.files().create(
         body=file_metadata,
         media_body = media
@@ -113,53 +98,28 @@ def upload_to_folder(file_name, drive_service):
     
     print("Upload complete")
     
+def remove_path(folder_path):
 
-    # look up docs for drive_services.files() methods
-    # results = drive_service.files().list(q=f"'{folder_id}' in parents",fields="files(id, name)").execute()
-
-def remove_spaces(folder_path):
     # Function removes spaces from file name 
-
-    print("before")
-    print(folder_path)
 
     substring = "Dubstep-Test/"
     index = folder_path.find(substring)
 
     if index != -1:
+
     # Remove everything before "Dubstep-Test/" including "Dubstep-Test/"
-        new_string = folder_path[index + len(substring)]
+        new_file_name = folder_path[index + len(substring):]
 
-    # Print the original and new strings
-    print("Original String:", folder_path)
-    print("New String:", new_string)
-    # folder_path = folder_path.replace(" ", "")
-    # print("after")
-    # print(folder_path)
-
-    if os.path.exists(folder_path):
-        for item in os.listdir(folder_path):
-            print("before")
-            print(item)
-            item = item.replace(" ", "")
-            print(item)
-            # item.regex(spaces) -> remove spaces
-
+        return new_file_name
+    
 # execution
 if __name__ == "__main__":
 
-    # store last time token refreshed somewhere
-    # if datetime.now() > # last time token refreshed - timedelta(1)
-    #     remove_token(token_file)
-
-    # remove file if exists
-
-    
     # Load your secrets and credentials
     with open('secrets.json') as secrets_file:
         secrets = json.load(secrets_file)
 
-    client_creds_path = 'credentials.json'
+    client_creds_path = 'service_account_key.json'
 
     # build the drive service
     drive_service = build_drive_service(client_creds_path, scopes=scopes)
@@ -173,8 +133,8 @@ if __name__ == "__main__":
     print(items)
 
     for item in items:
-        remove_spaces(item)
-        # upload_to_folder(item, drive_service)
+        item = remove_path(item)
+        upload_to_folder(item, drive_service)
 
   
 

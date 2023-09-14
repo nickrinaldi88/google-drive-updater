@@ -2,6 +2,7 @@
 
 ## TODO
 ##  - Alter file naming convention
-##  - Determine silent permission grant
+##  - Make a service account
+        ## - Find out why files aren't uploadeing
 ##  - Automation
 ##  - Unit Tests
