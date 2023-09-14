@@ -117,18 +117,43 @@ def upload_to_folder(file_name, drive_service):
     # look up docs for drive_services.files() methods
     # results = drive_service.files().list(q=f"'{folder_id}' in parents",fields="files(id, name)").execute()
 
-# def remove_spaces(folder_path):
-#     # Function removes spaces from file name 
+def remove_spaces(folder_path):
+    # Function removes spaces from file name 
 
-#     if os.path.exists(folder_path):
-#         for item in os.listdir(folder_path):
-#             # item.regex(spaces) -> remove spaces
+    print("before")
+    print(folder_path)
+
+    substring = "Dubstep-Test/"
+    index = folder_path.find(substring)
+
+    if index != -1:
+    # Remove everything before "Dubstep-Test/" including "Dubstep-Test/"
+        new_string = folder_path[index + len(substring)]
+
+    # Print the original and new strings
+    print("Original String:", folder_path)
+    print("New String:", new_string)
+    # folder_path = folder_path.replace(" ", "")
+    # print("after")
+    # print(folder_path)
+
+    if os.path.exists(folder_path):
+        for item in os.listdir(folder_path):
+            print("before")
+            print(item)
+            item = item.replace(" ", "")
+            print(item)
+            # item.regex(spaces) -> remove spaces
 
 # execution
 if __name__ == "__main__":
 
+    # store last time token refreshed somewhere
+    # if datetime.now() > # last time token refreshed - timedelta(1)
+    #     remove_token(token_file)
+
     # remove file if exists
-    # remove_token(token_file)
+
     
     # Load your secrets and credentials
     with open('secrets.json') as secrets_file:
@@ -148,7 +173,8 @@ if __name__ == "__main__":
     print(items)
 
     for item in items:
-        upload_to_folder(item, drive_service)
+        remove_spaces(item)
+        # upload_to_folder(item, drive_service)
 
   
 
