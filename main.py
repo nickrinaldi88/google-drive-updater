@@ -7,23 +7,17 @@ import google.auth
 from google.oauth2._credentials_async import Credentials
 from googleapiclient.discovery import build, MediaFileUpload
 from google_auth_oauthlib.flow import InstalledAppFlow
-from google.oauth2 import service_account
 import mimetypes
 
 # scope
 scopes = ['https://www.googleapis.com/auth/drive']
 
-file_name = 'flava.mp3'
 folder_path = '/Users/nickrinaldi/Desktop/Dubstep-Test'
 
 token_file = 'token.json'
 # build drive service
 
 def build_drive_service(credentials_path, scopes):
-
-    # Create a credentials object from the JSON key file
-    # creds = service_account.Credentials.from_service_account_file(
-    #     credentials_path, scopes=scopes)
 
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
@@ -37,7 +31,7 @@ def build_drive_service(credentials_path, scopes):
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', scopes)
+                credentials_path, scopes)
             creds = flow.run_local_server(port=0)
         # Save the credentials for the next run
         with open('token.json', 'w') as token:
@@ -60,17 +54,6 @@ def remove_token(token_file):
 
     return None
 
-# count items
-def count_items_in_folder(folder_id):
-
-    results = drive_service.files().list(
-        q=f"'{folder_id}' in parents",
-        fields="files(id, name)"
-    ).execute()
-
-    items = results.get('files', [])
-    return len(items)
-
 def parse_folder(folder_path):
 
     # get current time
@@ -84,10 +67,6 @@ def parse_folder(folder_path):
             item_path = os.path.join(folder_path, item)
             create_time = datetime.fromtimestamp(os.path.getctime(item_path)) # check if create time is greater than now
             items.append(item_path)
-            # print(create_time)
-            # if create_time > one_day_ago:
-
-                # items.append(item_path)
     else:
         print(f"The folder '{folder_path}' does not exist")
 
@@ -97,18 +76,13 @@ def parse_folder(folder_path):
 # upload folder function
 def upload_to_folder(raw_path, file_name, folder_id, drive_service):
 
-    # parse folder for items added after today
-    print(raw_path)
-    print(file_name)
-
     file_metadata = {
         'raw_path':  raw_path,
         'name': file_name,
         'parents': [folder_id]
     }
+
     mime_type, _ = mimetypes.guess_type(file_metadata['raw_path'])
-    # print(mime_type, _)
-    # media = MediaFileUpload(file_metadata['raw_path'])
     media = MediaFileUpload(file_metadata['raw_path'], mimetype=mime_type, resumable=True)
     request = drive_service.files().create(
         body=file_metadata,
@@ -116,23 +90,17 @@ def upload_to_folder(raw_path, file_name, folder_id, drive_service):
         fields='id'
     )
 
-    # print(file.get('id'))
-
     response = None
-    # # # print(dir(request))
+
     while response is None:
         status, response = request.next_chunk()
         print(status, response)
         if status:
             print(f'Uploaded {int(status.progress())}%')
 
-    # print(request.get('id'))
-    
-    print("Upload complete")
+    print(f"Uploaded file {file_metadata['name']} complete")
     
 def remove_path(folder_path):
-
-    # Function removes spaces from file name 
 
     substring = "Dubstep-Test/"
     index = folder_path.find(substring)
@@ -150,20 +118,19 @@ def remove_path(folder_path):
 # execution
 if __name__ == "__main__":
 
+    credentials_path = 'credentials.json'
+
     # Load your secrets and credentials
     with open('secrets.json') as secrets_file:
         secrets = json.load(secrets_file)
 
-    client_creds_path = 'service_account_key.json'
-
     # build the drive service
-    drive_service = build_drive_service(client_creds_path, scopes=scopes)
+    drive_service = build_drive_service(credentials_path, scopes=scopes)
 
     # # folder -id
     folder_id = secrets['folder_id']
 
     val = count_items_in_folder(folder_id)
-    print(val)
 
     items = parse_folder(folder_path)
     # print(items)
