@@ -1,8 +1,8 @@
 # google-drive-updater
 
 ## TODO
-##  - Alter file naming convention
-##  - Make a service account
-        ## - Find out why files aren't uploadeing
-##  - Automation
-##  - Unit Tests
+##  - Handle refresh tokens automaticaly
+##  - Install watchdog to handle events hitting folder
+    
+##  - Configure dockerfile
+##  - Local or cloud hosted script
