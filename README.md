@@ -1,8 +1,9 @@
 # google-drive-updater
 
 ## TODO
-##  - Handle refresh tokens automaticaly
+##  - Add docs
 ##  - Install watchdog to handle events hitting folder
+##  - Configure
     
 ##  - Configure dockerfile
 ##  - Local or cloud hosted script

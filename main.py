@@ -2,11 +2,8 @@ import os
 import json
 import time
 from datetime import datetime, timedelta
-# from google.oauth2.credentials import Credentials
-import google.auth
-from google.oauth2._credentials_async import Credentials
 from googleapiclient.discovery import build, MediaFileUpload
-from google_auth_oauthlib.flow import InstalledAppFlow
+from google.oauth2 import service_account
 import mimetypes
 
 # scope
@@ -14,45 +11,19 @@ scopes = ['https://www.googleapis.com/auth/drive']
 
 folder_path = '/Users/nickrinaldi/Desktop/Dubstep-Test'
 
-token_file = 'token.json'
 # build drive service
 
 def build_drive_service(credentials_path, scopes):
 
     creds = None
-    # The file token.json stores the user's access and refresh tokens, and is
-    # created automatically when the authorization flow completes for the first
-    # time.
-    if os.path.exists('token.json'):
-        creds = Credentials.from_authorized_user_file('token.json', scopes)
-    # If there are no (valid) credentials available, let the user log in.
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                credentials_path, scopes)
-            creds = flow.run_local_server(port=0)
-        # Save the credentials for the next run
-        with open('token.json', 'w') as token:
-            token.write(creds.to_json())
 
-    # creds = service_account.Credentials.from_service_account_file('service_account_key.json', scopes=scopes)
-
-    # creds, _ = google.auth.default()
+    try:
+        creds = service_account.Credentials.from_service_account_file('service_account_key.json', scopes=scopes)
+    except Exception as e:
+        print(f"Error intializing service account creds. Exception: {e}")
 
     drive_service = build('drive', 'v3', credentials=creds)
     return drive_service
-
-def remove_token(token_file):
-
-    if os.path.exists(token_file):
-        os.remove(token_file)
-    else:
-        print("token does not exist. Generating new service and rebuilding token")
-        time.sleep(.5)
-
-    return None
 
 def parse_folder(folder_path):
 
@@ -71,7 +42,6 @@ def parse_folder(folder_path):
         print(f"The folder '{folder_path}' does not exist")
 
     return items
-
 
 # upload folder function
 def upload_to_folder(raw_path, file_name, folder_id, drive_service):
@@ -118,7 +88,7 @@ def remove_path(folder_path):
 # execution
 if __name__ == "__main__":
 
-    credentials_path = 'credentials.json'
+    credentials_path = 'service_account_key.json'
 
     # Load your secrets and credentials
     with open('secrets.json') as secrets_file:
@@ -130,14 +100,9 @@ if __name__ == "__main__":
     # # folder -id
     folder_id = secrets['folder_id']
 
-    val = count_items_in_folder(folder_id)
-
     items = parse_folder(folder_path)
-    # print(items)
 
     for item in items:
         item_dict = remove_path(item)
         upload_to_folder(item_dict['raw_path'], item_dict['file_name'], folder_id, drive_service)
-
-  
 
