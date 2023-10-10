@@ -5,11 +5,28 @@ from datetime import datetime, timedelta
 from googleapiclient.discovery import build, MediaFileUpload
 from google.oauth2 import service_account
 import mimetypes
+import subprocess
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+
+
 
 # scope
 scopes = ['https://www.googleapis.com/auth/drive']
 
-folder_path = '/Users/nickrinaldi/Desktop/Dubstep-Test'
+source_path = '/Users/nickrinaldi/Desktop/Dubstep-Test/staging'
+destination_path = '/Users/nickrinaldi/Desktop/Dubstep-Test/uploaded'
+credentials_path = 'service_account_key.json'
+
+print(destination_path)
+
+# build event handler
+class MyHandler(FileSystemEventHandler):
+
+    def on_created(self, event):
+        if not event.is_directory:  # Ignore directory creation events
+            print(f"New file created: {event.src_path}")
+            upload_and_move(event.src_path, destination_path=destination_path)
 
 # build drive service
 
@@ -18,28 +35,23 @@ def build_drive_service(credentials_path, scopes):
     creds = None
 
     try:
-        creds = service_account.Credentials.from_service_account_file('service_account_key.json', scopes=scopes)
+        creds = service_account.Credentials.from_service_account_file(credentials_path, scopes=scopes)
     except Exception as e:
         print(f"Error intializing service account creds. Exception: {e}")
 
     drive_service = build('drive', 'v3', credentials=creds)
     return drive_service
 
-def parse_folder(folder_path):
-
-    # get current time
-    current_datetime = datetime.now()
-    one_day_ago = current_datetime - timedelta(days=1)
+def parse_folder(source_path):
 
     items = []
 
-    if os.path.exists(folder_path):
-        for item in os.listdir(folder_path):
-            item_path = os.path.join(folder_path, item)
-            create_time = datetime.fromtimestamp(os.path.getctime(item_path)) # check if create time is greater than now
-            items.append(item_path)
+    if os.path.exists(source_path):
+        # for item in os.listdir(source_path):
+        # item_path = os.path.join(source_path, item)
+        items.append(source_path)
     else:
-        print(f"The folder '{folder_path}' does not exist")
+        print(f"The folder '{source_path}' does not exist")
 
     return items
 
@@ -70,39 +82,70 @@ def upload_to_folder(raw_path, file_name, folder_id, drive_service):
 
     print(f"Uploaded file {file_metadata['name']} complete")
     
-def remove_path(folder_path):
+def remove_path(source_path):
 
-    substring = "Dubstep-Test/"
-    index = folder_path.find(substring)
+    substring = "Dubstep-Test/staging/"
+    index = source_path.find(substring)
     path_new_name = {}
 
     if index != -1:
 
     # Remove everything before "Dubstep-Test/" including "Dubstep-Test/"
-        new_file_name = folder_path[index + len(substring):]
-        path_new_name['raw_path'] = folder_path
+        new_file_name = source_path[index + len(substring):]
+        path_new_name['raw_path'] = source_path
         path_new_name['file_name'] = new_file_name
 
         return path_new_name
     
-# execution
-if __name__ == "__main__":
+def move_file(source_path, destination_path):
 
-    credentials_path = 'service_account_key.json'
+    print(source_path)
 
-    # Load your secrets and credentials
+    try:
+        # Copy the file to the destination path
+        with open(source_path, 'rb') as source_file:
+            with open(destination_path, 'wb') as destination_file:
+                destination_file.write(source_file.read())
+
+        # Remove the file from the source path
+        os.remove(source_path)
+
+        print(f"File moved from '{source_path}' to '{destination_path}' successfully.")
+    except Exception as e:
+        print(f"Error moving the file: {str(e)}")
+
+
+def upload_and_move(source_path, destination_path):
+
     with open('secrets.json') as secrets_file:
         secrets = json.load(secrets_file)
+
+            # # folder id
+    folder_id = secrets['folder_id']
 
     # build the drive service
     drive_service = build_drive_service(credentials_path, scopes=scopes)
 
-    # # folder -id
-    folder_id = secrets['folder_id']
-
-    items = parse_folder(folder_path)
+    items = parse_folder(source_path)
 
     for item in items:
         item_dict = remove_path(item)
         upload_to_folder(item_dict['raw_path'], item_dict['file_name'], folder_id, drive_service)
+        destination_path = destination_path + "/" + item_dict['file_name']
+        move_file(item_dict['raw_path'], destination_path=destination_path)
 
+
+# execution
+if __name__ == "__main__":
+
+    event_handler = MyHandler()
+    observer = Observer()
+    observer.schedule(event_handler, path=source_path, recursive=False)
+    observer.start()
+
+    try:
+        while True:
+            time.sleep(5)
+    except KeyboardInterrupt:
+        observer.stop()
+    observer.join()
