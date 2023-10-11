@@ -8,17 +8,23 @@ import mimetypes
 import subprocess
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+import logging
 
+# configure logger
 
+logging.basicConfig(filename='heartbeat.log', level=logging.INFO, format='%(asctime)s - %(message)s')
+
+# get current datetime
+current_datetime = datetime.now()
+date_string = current_datetime.strftime("%Y-%m-%d %H:%M:%S")
 
 # scope
 scopes = ['https://www.googleapis.com/auth/drive']
 
+#paths
 source_path = '/Users/nickrinaldi/Desktop/Dubstep-Test/staging'
 destination_path = '/Users/nickrinaldi/Desktop/Dubstep-Test/uploaded'
 credentials_path = 'service_account_key.json'
-
-print(destination_path)
 
 # build event handler
 class MyHandler(FileSystemEventHandler):
@@ -28,6 +34,12 @@ class MyHandler(FileSystemEventHandler):
             print(f"New file created: {event.src_path}")
             upload_and_move(event.src_path, destination_path=destination_path)
 
+# build heartbeat 
+def log_heartbeat():
+    while True:
+        logging.info(f"Heartbeat: Script is still running at: {date_string}")
+        time.sleep(3 * 36000)
+        
 # build drive service
 
 def build_drive_service(credentials_path, scopes):
@@ -38,6 +50,7 @@ def build_drive_service(credentials_path, scopes):
         creds = service_account.Credentials.from_service_account_file(credentials_path, scopes=scopes)
     except Exception as e:
         print(f"Error intializing service account creds. Exception: {e}")
+        logging.error(f"Error intializing service account creds. Exception: {e}")
 
     drive_service = build('drive', 'v3', credentials=creds)
     return drive_service
@@ -52,6 +65,7 @@ def parse_folder(source_path):
         items.append(source_path)
     else:
         print(f"The folder '{source_path}' does not exist")
+        logging.error(f"The folder '{source_path}' does not exist")
 
     return items
 
@@ -81,6 +95,7 @@ def upload_to_folder(raw_path, file_name, folder_id, drive_service):
             print(f'Uploaded {int(status.progress())}%')
 
     print(f"Uploaded file {file_metadata['name']} complete")
+    logging.info(f"Uploaded file {file_metadata['name']} complete")
     
 def remove_path(source_path):
 
@@ -98,8 +113,6 @@ def remove_path(source_path):
         return path_new_name
     
 def move_file(source_path, destination_path):
-
-    print(source_path)
 
     try:
         # Copy the file to the destination path
@@ -120,7 +133,7 @@ def upload_and_move(source_path, destination_path):
     with open('secrets.json') as secrets_file:
         secrets = json.load(secrets_file)
 
-            # # folder id
+    # folder id
     folder_id = secrets['folder_id']
 
     # build the drive service
@@ -133,7 +146,6 @@ def upload_and_move(source_path, destination_path):
         upload_to_folder(item_dict['raw_path'], item_dict['file_name'], folder_id, drive_service)
         destination_path = destination_path + "/" + item_dict['file_name']
         move_file(item_dict['raw_path'], destination_path=destination_path)
-
 
 # execution
 if __name__ == "__main__":
