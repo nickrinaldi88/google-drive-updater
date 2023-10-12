@@ -36,10 +36,10 @@ class MyHandler(FileSystemEventHandler):
 
 # build heartbeat 
 def log_heartbeat():
-    while True:
-        logging.info(f"Heartbeat: Script is still running at: {date_string}")
-        time.sleep(3 * 36000)
-        
+    
+    logging.info(f"Heartbeat: Script is still running at: {date_string}")
+    time.sleep(3 * 36000)
+
 # build drive service
 
 def build_drive_service(credentials_path, scopes):
@@ -158,6 +158,7 @@ if __name__ == "__main__":
     try:
         while True:
             time.sleep(5)
+        log_heartbeat()
     except KeyboardInterrupt:
         observer.stop()
     observer.join()
