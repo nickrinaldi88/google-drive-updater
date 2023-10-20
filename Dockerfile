@@ -1,8 +1,11 @@
 # Use an official Python runtime as a parent image
-FROM python:3.8-slim
+FROM alpine:latest
 
 # Set the working directory in the container
 WORKDIR /app
+
+# Install necessary packages (including pip)
+RUN apk --no-cache add python3 py3-pip
 
 # Copy the requirements file into the container at /app
 COPY requirements.txt .
@@ -14,4 +17,4 @@ RUN pip install -r requirements.txt
 COPY . .
 
 # Run your Python script
-CMD ["python", "test.py"]
+CMD ["python3", "main.py"]

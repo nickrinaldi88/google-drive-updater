@@ -24,6 +24,7 @@ scopes = ['https://www.googleapis.com/auth/drive']
 #paths
 source_path = '/Users/nickrinaldi/Desktop/Dubstep-Test/staging'
 destination_path = '/Users/nickrinaldi/Desktop/Dubstep-Test/uploaded'
+mount_path = 'app/staging'
 credentials_path = 'service_account_key.json'
 
 # build event handler
@@ -37,8 +38,10 @@ class MyHandler(FileSystemEventHandler):
 # build heartbeat 
 def log_heartbeat():
     
-    logging.info(f"Heartbeat: Script is still running at: {date_string}")
-    time.sleep(3 * 36000)
+    while True:
+        print(f"Heartbeat: Script is still running at: {date_string}")
+        logging.info(f"Heartbeat: Script is still running at: {date_string}")
+        time.sleep(3 * 36000)
 
 # build drive service
 
@@ -150,15 +153,17 @@ def upload_and_move(source_path, destination_path):
 # execution
 if __name__ == "__main__":
 
+    mount_path = 'app/staging'
+
     event_handler = MyHandler()
     observer = Observer()
-    observer.schedule(event_handler, path=source_path, recursive=False)
+    observer.schedule(event_handler, path=mount_path, recursive=False)
     observer.start()
+    log_heartbeat()
 
     try:
         while True:
             time.sleep(5)
-        log_heartbeat()
     except KeyboardInterrupt:
         observer.stop()
     observer.join()
