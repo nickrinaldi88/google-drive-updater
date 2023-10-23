@@ -63,9 +63,9 @@ def parse_folder(source_path):
     items = []
 
     if os.path.exists(source_path):
-        # for item in os.listdir(source_path):
-        # item_path = os.path.join(source_path, item)
-        items.append(source_path)
+        for item in os.listdir(source_path):
+            item_path = os.path.join(source_path, item)
+            items.append(item_path)
     else:
         print(f"The folder '{source_path}' does not exist")
         logging.error(f"The folder '{source_path}' does not exist")
@@ -153,7 +153,7 @@ def upload_and_move(source_path, destination_path):
 # execution
 if __name__ == "__main__":
 
-    mount_path = 'app/staging'
+    upload_and_move(source_path, )
 
     event_handler = MyHandler()
     observer = Observer()
