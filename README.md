@@ -1,11 +1,15 @@
 # google-drive-updater
 
 ## TODO
-##  - Configure dockerfile to work 
-##  - Local or cloud hosted script
-## - Write v2 steps 
 
+# WRITE README
 ## STEPS ##
+## change to cronjob
+## cronjob logging
 ## git clone
-## docker build -t google_drive_updater .
-## docker run -d google_drive_updater
+## docker build -t google_drive_uploader .
+## Mount the volume
+## ## docker run -d -v /path/on/local/machine:/path/in/container my-image:latest
+## ## docker run -d -v /Users/nickrinaldi/Desktop/Dubstep-Test/staging:/app/staging google_drive_uploader
+
+## docker run -d google_drive_uploader
