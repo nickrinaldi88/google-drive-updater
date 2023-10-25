@@ -1,4 +1,4 @@
 credentials.json
-token.json
-refresh_token.txt
 service_account_key.json
+heartbeat.log
+counter.txt

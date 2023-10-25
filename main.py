@@ -5,9 +5,6 @@ from datetime import datetime, timedelta
 from googleapiclient.discovery import build, MediaFileUpload
 from google.oauth2 import service_account
 import mimetypes
-import subprocess
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
 import logging
 
 # configure logger
@@ -22,26 +19,17 @@ date_string = current_datetime.strftime("%Y-%m-%d %H:%M:%S")
 scopes = ['https://www.googleapis.com/auth/drive']
 
 #paths
-source_path = '/Users/nickrinaldi/Desktop/Dubstep-Test/staging'
-destination_path = '/Users/nickrinaldi/Desktop/Dubstep-Test/uploaded'
-mount_path = 'app/staging'
+source_path = '/Users/nickrinaldi/Desktop/Dubstep-Uploader/staging'
+destination_path = '/Users/nickrinaldi/Desktop/Dubstep-Uploader/uploaded'
 credentials_path = 'service_account_key.json'
-
-# build event handler
-class MyHandler(FileSystemEventHandler):
-
-    def on_created(self, event):
-        if not event.is_directory:  # Ignore directory creation events
-            print(f"New file created: {event.src_path}")
-            upload_and_move(event.src_path, destination_path=destination_path)
+dash = "-"
 
 # build heartbeat 
 def log_heartbeat():
-    
-    while True:
-        print(f"Heartbeat: Script is still running at: {date_string}")
-        logging.info(f"Heartbeat: Script is still running at: {date_string}")
-        time.sleep(3 * 36000)
+
+    # print(f"Heartbeat: Script is still running at: {date_string}")
+    logging.info(f"INTERNAL LOG: Script run executed at: {date_string}")
+    logging.info(dash * 25)
 
 # build drive service
 
@@ -99,10 +87,11 @@ def upload_to_folder(raw_path, file_name, folder_id, drive_service):
 
     print(f"Uploaded file {file_metadata['name']} complete")
     logging.info(f"Uploaded file {file_metadata['name']} complete")
+    logging.info(dash * 25)
     
 def remove_path(source_path):
 
-    substring = "Dubstep-Test/staging/"
+    substring = "Dubstep-Uploader/staging/"
     index = source_path.find(substring)
     path_new_name = {}
 
@@ -143,27 +132,19 @@ def upload_and_move(source_path, destination_path):
     drive_service = build_drive_service(credentials_path, scopes=scopes)
 
     items = parse_folder(source_path)
+    item_len = len(items)
 
-    for item in items:
-        item_dict = remove_path(item)
-        upload_to_folder(item_dict['raw_path'], item_dict['file_name'], folder_id, drive_service)
-        destination_path = destination_path + "/" + item_dict['file_name']
-        move_file(item_dict['raw_path'], destination_path=destination_path)
+    if item_len > 0:
+        for item in items:
+            item_dict = remove_path(item)
+            upload_to_folder(item_dict['raw_path'], item_dict['file_name'], folder_id, drive_service)
+            destination_path = destination_path + "/" + item_dict['file_name']
+            move_file(item_dict['raw_path'], destination_path=destination_path)
+    else:
+        logging.info("No files to upload")
 
 # execution
 if __name__ == "__main__":
-
-    upload_and_move(source_path, )
-
-    event_handler = MyHandler()
-    observer = Observer()
-    observer.schedule(event_handler, path=mount_path, recursive=False)
-    observer.start()
+    
     log_heartbeat()
-
-    try:
-        while True:
-            time.sleep(5)
-    except KeyboardInterrupt:
-        observer.stop()
-    observer.join()
+    upload_and_move(source_path=source_path, destination_path=destination_path)
