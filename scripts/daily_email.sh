@@ -27,12 +27,12 @@ fi
 TIME_ELAPSED=$((CURRENT_TIMESTAMP - LAST_EXECUTION_TIMESTAMP))
 
 # Check if 24 hours (86400 seconds) have passed
-if [ "$TIME_ELAPSED" -ge 86400 ]; then
+# if [ "$TIME_ELAPSED" -ge 86400 ]; then
   # Send an email with the log file attached
   # Replace the following placeholders with your email configuration
   TO=$SMTP_USERNAME
   FROM="sender@example.com"
-  SUBJECT="GOOGLE DRIVE UPLOADER SCRIPT LOG " + $CURRENT_TIMESTAMP
+  SUBJECT="GOOGLE DRIVE UPLOADER SCRIPT LOG " + "$CURRENT_TIMESTAMP"
   SMTP_SERVER="smtp.gmail.com"
   SMTP_PORT="25"
   SMTP_USER=$SMTP_USERNAME
@@ -45,8 +45,11 @@ if [ "$TIME_ELAPSED" -ge 86400 ]; then
 
 
   # Use the 'mail' command to send an email with the log file attachment
-  echo -e "$EMAIL_BODY"| mail -s "$SUBJECT" -a "$LOG_FILE" -S smtp="$SMTP_SERVER" -S smtp-use-starttls -S smtp-auth=login -S smtp-auth-user="$SMTP_USER" -S smtp-auth-password="$SMTP_PASS" -S smtp-port="$SMTP_PORT" -r "$FROM" "$TO"
+#   echo -e "$EMAIL_BODY"| mail -s "$SUBJECT" -a "$LOG_FILE" -S smtp="$SMTP_SERVER" -S smtp-use-starttls -S smtp-auth=login -S smtp-auth-user="$SMTP_USER" -S smtp-auth-password="$SMTP_PASS" -S smtp-port="$SMTP_PORT" -r "$FROM" "$TO"
 
+  mutt -s "$SUBJECT" -a "$LOG_FILE" -- "$TO" < "$EMAIL_BODY"
+
+  echo "Script Running"
   # open counter
   cat "$COUNTER_FILE"
   # Clear the log file
@@ -56,4 +59,4 @@ if [ "$TIME_ELAPSED" -ge 86400 ]; then
 
   # Update the last execution timestamp to the current timestamp
   echo "$CURRENT_TIMESTAMP" > "$LAST_EXECUTION_FILE"
-fi
+# fi

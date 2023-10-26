@@ -6,6 +6,15 @@ from googleapiclient.discovery import build, MediaFileUpload
 from google.oauth2 import service_account
 import mimetypes
 import logging
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+# Email configuration
+sender_email = "rinaldinick88@gmail.com"
+receiver_email = "rinaldinick88@gmail.com"
+subject = "GOOGLE DRIVE UPLOADER SCRIPT LOG " + "$CURRENT_TIMESTAMP"
+body = "This is the email body."
 
 # configure logger
 
@@ -13,7 +22,7 @@ logging.basicConfig(filename='heartbeat.log', level=logging.INFO, format='%(asct
 
 # get current datetime
 current_datetime = datetime.now()
-date_string = current_datetime.strftime("%Y-%m-%d %H:%M:%S")
+date_string = current_datetime.strftime("%m-%d-%Y %H:%M:%S")
 
 # scope
 scopes = ['https://www.googleapis.com/auth/drive']
@@ -143,6 +152,8 @@ def upload_and_move(source_path, destination_path):
     else:
         logging.info("No files to upload")
 
+def send_email():
+    pass
 # execution
 if __name__ == "__main__":
     
