@@ -10,19 +10,37 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-# Email configuration
-sender_email = "rinaldinick88@gmail.com"
-receiver_email = "rinaldinick88@gmail.com"
-subject = "GOOGLE DRIVE UPLOADER SCRIPT LOG " + "$CURRENT_TIMESTAMP"
-body = "This is the email body."
+# import emailer
+from utils import emailer
+from emailer import Emailer
 
-# configure logger
-
-logging.basicConfig(filename='heartbeat.log', level=logging.INFO, format='%(asctime)s - %(message)s')
-
+################################# EMAIL CONFIGURATION #################################
 # get current datetime
 current_datetime = datetime.now()
 date_string = current_datetime.strftime("%m-%d-%Y %H:%M:%S")
+
+smtp_port = 587 # TLS port
+smtp_server = "smtp.gmail.com"
+total_file_count = 0
+
+subject = f"GOOGLE DRIVE UPLOADER SCRIPT LOG - {date_string}"
+body = "The script ran 48 times today, and uploaded a total of {total_file_count} files."
+attachment_path = "heartbeat.log"
+attachment = open(attachment_path, "rb")
+
+# get smtp user + pass
+try:
+    with open('secrets.json', 'r') as file:
+        data = json.load(file)
+        smtp_username, sender_email, receiver_email = data['smtp_username']
+        smtp_password = data['smtp_password']
+except (FileNotFoundError, json.JSONDecodeError) as e:
+    print("Error: ", e)
+    logging.info("Error: ", e)
+    
+
+logging.basicConfig(filename='heartbeat.log', level=logging.INFO, format='%(asctime)s - %(message)s')
+
 
 # scope
 scopes = ['https://www.googleapis.com/auth/drive']
@@ -131,6 +149,8 @@ def move_file(source_path, destination_path):
 
 def upload_and_move(source_path, destination_path):
 
+    counter = 0
+
     with open('secrets.json') as secrets_file:
         secrets = json.load(secrets_file)
 
@@ -145,6 +165,7 @@ def upload_and_move(source_path, destination_path):
 
     if item_len > 0:
         for item in items:
+            counter += 1
             item_dict = remove_path(item)
             upload_to_folder(item_dict['raw_path'], item_dict['file_name'], folder_id, drive_service)
             destination_path = destination_path + "/" + item_dict['file_name']
@@ -152,10 +173,18 @@ def upload_and_move(source_path, destination_path):
     else:
         logging.info("No files to upload")
 
-def send_email():
-    pass
+    
 # execution
 if __name__ == "__main__":
     
     log_heartbeat()
     upload_and_move(source_path=source_path, destination_path=destination_path)
+    attachment_path = "files/heartbeat.log"
+    emailer = Emailer(smtp_server, smtp_username, smtp_password, smtp_port)
+    # if 24 hours have passed, send email
+    if emailer.record_email_time():
+        email = emailer.create_email(sender_email, receiver_email, subject, body, attachment_path)
+        emailer.send_email(sender_email, receiver_email, email)
+
+
+

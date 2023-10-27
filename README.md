@@ -5,6 +5,7 @@
 # WRITE README
 ## STEPS ##
 ## add daily_email cronjob
-## debug daily_email func
+## edit send_email util
+## 
 
 ## docker run -d google_drive_uploader
