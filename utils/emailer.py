@@ -10,7 +10,7 @@ import os
 
 class Emailer:
 
-    def __init__(self, smtp_server, smtp_port, smtp_username, smtp_password):
+    def __init__(self, smtp_server, smtp_username, smtp_password, smtp_port):
 
         self.smtp_server = smtp_server
         self.smtp_port = smtp_port  # TLS
@@ -20,24 +20,25 @@ class Emailer:
 
     def record_email_time(self):
 
-        date_format = "%Y-%m-%d %H:%M:%S"
+        date_format = "%Y-%m-%d %H:%M:%S.%f"
 
         current_time = datetime.now()
-        with open("../last_email_time.txt", 'w+') as file:
+        with open("files/last_email_time.txt", 'r') as file:
             # read last email times
             last_email_time_str = file.read()
+            print(last_email_time_str)
             # get difference
             if last_email_time_str != '':
                 last_email_time = datetime.strptime(last_email_time_str, date_format)
-
                 difference = current_time - last_email_time
                 if difference >= timedelta(hours=24):
-                    # write a new time
-                    file.write(str(current_time))
+                    with open("files/last_email_time.txt", 'w') as file: 
+                        # write a new time
+                        file.write(str(current_time))
                     # return True
                     return True
-                return False
             return False
+        return False
 
     def create_email(self, sender_email, receiver_email, subject, body, attachment_path, date_string):
 
@@ -49,7 +50,9 @@ class Emailer:
 
         # Attach a file
         part = MIMEBase('application', 'octet-stream')
-        part.set_payload((attachment_path).read())
+        with open(attachment_path, 'rb') as file:
+                part.set_payload(file.read())
+        # part.set_payload((attachment_path).read())
         encoders.encode_base64(part)
         attachment = os.path.basename(attachment_path)
         attachment_name = f"{attachment} - {date_string}"
@@ -63,13 +66,15 @@ class Emailer:
 
         # start server
 
+        print(self.smtp_server)
+        print(self.smtp_port)
         server = smtplib.SMTP(self.smtp_server, self.smtp_port)
         server.starttls()
         server.login(self.smtp_username, self.smtp_password)
 
         # send email
 
-        server.sendmail(sender_email, receiver_email, msg.as_strong())
+        server.sendmail(sender_email, receiver_email, msg.as_string())
 
         # close server
         server.quit()

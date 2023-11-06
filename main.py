@@ -222,9 +222,11 @@ if __name__ == "__main__":
     new_value = upload_and_move(source_path=source_path, destination_path=destination_path)
     attachment_path = "files/heartbeat.log"
     emailer = Emailer(smtp_server, smtp_username, smtp_password, smtp_port)
+    last_email_time = emailer.record_email_time()
+    print(last_email_time)
     # if 24 hours have passed, send email
-    # if emailer.record_email_time(): # if true, create + send email 
-    if new_value > 4:
+    if last_email_time: # if true, create + send email 
+    # if new_value > 4:
 
         # write email
         email = emailer.create_email(sender_email, receiver_email, subject, body, attachment_path, date_string)
