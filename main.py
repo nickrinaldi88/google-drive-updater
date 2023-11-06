@@ -11,36 +11,42 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 # import emailer
-from utils import emailer
-from emailer import Emailer
+from utils.emailer import Emailer
+
 
 ################################# EMAIL CONFIGURATION #################################
 # get current datetime
 current_datetime = datetime.now()
 date_string = current_datetime.strftime("%m-%d-%Y %H:%M:%S")
-
-smtp_port = 587 # TLS port
-smtp_server = "smtp.gmail.com"
 total_file_count = 0
-
-subject = f"GOOGLE DRIVE UPLOADER SCRIPT LOG - {date_string}"
-body = "The script ran 48 times today, and uploaded a total of {total_file_count} files."
-attachment_path = "heartbeat.log"
-attachment = open(attachment_path, "rb")
 
 # get smtp user + pass
 try:
     with open('secrets.json', 'r') as file:
         data = json.load(file)
-        smtp_username, sender_email, receiver_email = data['smtp_username']
+        smtp_username = sender_email = receiver_email = data['smtp_username']
         smtp_password = data['smtp_password']
 except (FileNotFoundError, json.JSONDecodeError) as e:
     print("Error: ", e)
     logging.info("Error: ", e)
-    
+
+try:
+    with open('files/counter.txt', 'r') as file:
+        total_file_count = file.read()
+except (FileNotFoundError) as e:
+    print("Error:", e)
+    logging.info("Error: ", e)
+
+
+smtp_port = 587 # TLS port
+smtp_server = "smtp.gmail.com"
+
+subject = f"GOOGLE DRIVE UPLOADER SCRIPT LOG - {date_string}"
+body = f"The script ran 48 times today, and uploaded a total of {total_file_count} files."
+
+ ################################# LOGGING + MISC CONFIG #################################   
 
 logging.basicConfig(filename='heartbeat.log', level=logging.INFO, format='%(asctime)s - %(message)s')
-
 
 # scope
 scopes = ['https://www.googleapis.com/auth/drive']
@@ -48,6 +54,7 @@ scopes = ['https://www.googleapis.com/auth/drive']
 #paths
 source_path = '/Users/nickrinaldi/Desktop/Dubstep-Uploader/staging'
 destination_path = '/Users/nickrinaldi/Desktop/Dubstep-Uploader/uploaded'
+counter_path = 'files/counter.txt'
 credentials_path = 'service_account_key.json'
 dash = "-"
 
@@ -125,6 +132,7 @@ def remove_path(source_path):
     if index != -1:
 
     # Remove everything before "Dubstep-Test/" including "Dubstep-Test/"
+
         new_file_name = source_path[index + len(substring):]
         path_new_name['raw_path'] = source_path
         path_new_name['file_name'] = new_file_name
@@ -149,10 +157,11 @@ def move_file(source_path, destination_path):
 
 def upload_and_move(source_path, destination_path):
 
-    counter = 0
 
-    with open('secrets.json') as secrets_file:
-        secrets = json.load(secrets_file)
+    with open('secrets.json', 'r+') as secrets_file:
+        secrets_file = secrets_file.read()
+        # print(secrets)
+        secrets = json.loads(secrets_file)
 
     # folder id
     folder_id = secrets['folder_id']
@@ -160,30 +169,65 @@ def upload_and_move(source_path, destination_path):
     # build the drive service
     drive_service = build_drive_service(credentials_path, scopes=scopes)
 
+    # initialize counter
+
     items = parse_folder(source_path)
     item_len = len(items)
 
+    counter = 0
     if item_len > 0:
+        counter = 0
         for item in items:
-            counter += 1
             item_dict = remove_path(item)
-            upload_to_folder(item_dict['raw_path'], item_dict['file_name'], folder_id, drive_service)
-            destination_path = destination_path + "/" + item_dict['file_name']
-            move_file(item_dict['raw_path'], destination_path=destination_path)
+            print(item_dict['file_name'])
+            if item_dict['file_name'] != ".DS_Store":
+                print("This is the item: " + str(item)) 
+                print(counter)
+                counter += 1
+                upload_to_folder(item_dict['raw_path'], item_dict['file_name'], folder_id, drive_service)
+                destination_path = destination_path + "/" + item_dict['file_name']
+                move_file(item_dict['raw_path'], destination_path=destination_path)
     else:
         logging.info("No files to upload")
 
+    # add to counter
+
+    # read file
+    try:
+        with open(counter_path, 'r') as file:
+            print("files_moved: ")
+            files_moved = file.read()
+    except FileNotFoundError as e:
+        logging.info(e)
+        previous_value = 0
+
+    try: 
+        with open(counter_path, 'w') as file:
+            print("files_moved: ")
+            previous_value = int(files_moved) if files_moved else 0
+            print("previous", previous_value)
+            new_value = previous_value + counter
+            print("new", new_value)
+            file.write(str(new_value))
+    except FileNotFoundError as e:
+        logging.info(e)
+        previous_value = 0
     
+    return new_value
+
 # execution
 if __name__ == "__main__":
     
     log_heartbeat()
-    upload_and_move(source_path=source_path, destination_path=destination_path)
+    new_value = upload_and_move(source_path=source_path, destination_path=destination_path)
     attachment_path = "files/heartbeat.log"
     emailer = Emailer(smtp_server, smtp_username, smtp_password, smtp_port)
     # if 24 hours have passed, send email
-    if emailer.record_email_time():
-        email = emailer.create_email(sender_email, receiver_email, subject, body, attachment_path)
+    # if emailer.record_email_time(): # if true, create + send email 
+    if new_value > 4:
+
+        # write email
+        email = emailer.create_email(sender_email, receiver_email, subject, body, attachment_path, date_string)
         emailer.send_email(sender_email, receiver_email, email)
 
 

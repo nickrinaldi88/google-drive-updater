@@ -1,16 +1,9 @@
-# file_path = "heartbeat.log"
+import os
 
-# try:
-#     with open(file_path, 'w') as file:
-#         file.truncate(0)
-# except Exception as e:
-#     print(f"There was an error clearing the context of {file_path}. Here's more info: \n{e}")
+counter_path = '/Users/nickrinaldi/dev/google-drive-updater/files/counter.txt'
 
-import datetime
-from datetime import datetime
-
-last_email_time = None
-
-now = datetime.now()
-result = (now - last_email_time).total_seconds() >= 24 * 3600
-print(result)
+with open(counter_path, 'r+') as file:
+    # file.seek(0)
+    print("files_moved: ")
+    files_moved = file.read()
+    print(files_moved)

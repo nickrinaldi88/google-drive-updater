@@ -38,6 +38,7 @@ TIME_ELAPSED=$((CURRENT_TIMESTAMP - LAST_EXECUTION_TIMESTAMP))
   SMTP_USER=$SMTP_USERNAME
   SMTP_PASS=$SMTP_PASSWORD
 
+  COUNTER_FILE="/Users/nickrinaldi/dev/google-drive-updater/counter.txt"
   COUNTER=$(cat "$COUNTER_FILE")
 
    # Send email body 
