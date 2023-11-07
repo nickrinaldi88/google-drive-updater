@@ -26,8 +26,8 @@ Before using the script, ensure that you have the following prerequisites in pla
 
 - **Source and Destination Directories:** Configure the `source_path` and `destination_path` variables in the script to specify the source and destination directories.
 
-- **Usage:**
-
+Usage
+-----
 - Run the script by executing it using Python.
 
 ``` python main.py```
