@@ -2,3 +2,4 @@ credentials.json
 service_account_key.json
 heartbeat.log
 counter.txt
+test2.py

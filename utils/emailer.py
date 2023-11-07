@@ -52,7 +52,6 @@ class Emailer:
         part = MIMEBase('application', 'octet-stream')
         with open(attachment_path, 'rb') as file:
                 part.set_payload(file.read())
-        # part.set_payload((attachment_path).read())
         encoders.encode_base64(part)
         attachment = os.path.basename(attachment_path)
         attachment_name = f"{attachment} - {date_string}"
@@ -64,17 +63,14 @@ class Emailer:
     
     def send_email(self, sender_email, receiver_email, msg):
 
-        # start server
-
-        print(self.smtp_server)
-        print(self.smtp_port)
+        # Start server
         server = smtplib.SMTP(self.smtp_server, self.smtp_port)
         server.starttls()
         server.login(self.smtp_username, self.smtp_password)
 
-        # send email
+        # Send email
 
         server.sendmail(sender_email, receiver_email, msg.as_string())
 
-        # close server
+        # Close server
         server.quit()

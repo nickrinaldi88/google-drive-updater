@@ -13,7 +13,6 @@ from email.mime.text import MIMEText
 # import emailer
 from utils.emailer import Emailer
 
-
 ################################# EMAIL CONFIGURATION #################################
 # get current datetime
 current_datetime = datetime.now()
@@ -41,12 +40,12 @@ except (FileNotFoundError) as e:
 smtp_port = 587 # TLS port
 smtp_server = "smtp.gmail.com"
 
-subject = f"GOOGLE DRIVE UPLOADER SCRIPT LOG - {date_string}"
-body = f"The script ran 48 times today, and uploaded a total of {total_file_count} files."
+subject = f"GOOGLE-DRIVE-UPLOADER SCRIPT LOG - {date_string}"
+body = f"The script and uploaded a total of {total_file_count} files today."
 
  ################################# LOGGING + MISC CONFIG #################################   
 
-logging.basicConfig(filename='heartbeat.log', level=logging.INFO, format='%(asctime)s - %(message)s')
+logging.basicConfig(filename='logs/heartbeat.log', level=logging.INFO, format='%(asctime)s - %(message)s')
 
 # scope
 scopes = ['https://www.googleapis.com/auth/drive']
@@ -61,7 +60,6 @@ dash = "-"
 # build heartbeat 
 def log_heartbeat():
 
-    # print(f"Heartbeat: Script is still running at: {date_string}")
     logging.info(f"INTERNAL LOG: Script run executed at: {date_string}")
     logging.info(dash * 25)
 
@@ -119,8 +117,7 @@ def upload_to_folder(raw_path, file_name, folder_id, drive_service):
         if status:
             print(f'Uploaded {int(status.progress())}%')
 
-    print(f"Uploaded file {file_metadata['name']} complete")
-    logging.info(f"Uploaded file {file_metadata['name']} complete")
+    logging.info(f"*** Uploaded File: {file_metadata['name']} complete ***")
     logging.info(dash * 25)
     
 def remove_path(source_path):
@@ -179,10 +176,7 @@ def upload_and_move(source_path, destination_path):
         counter = 0
         for item in items:
             item_dict = remove_path(item)
-            print(item_dict['file_name'])
             if item_dict['file_name'] != ".DS_Store":
-                print("This is the item: " + str(item)) 
-                print(counter)
                 counter += 1
                 upload_to_folder(item_dict['raw_path'], item_dict['file_name'], folder_id, drive_service)
                 destination_path = destination_path + "/" + item_dict['file_name']
@@ -220,17 +214,32 @@ if __name__ == "__main__":
     
     log_heartbeat()
     new_value = upload_and_move(source_path=source_path, destination_path=destination_path)
-    attachment_path = "files/heartbeat.log"
+    attachment_path = "logs/heartbeat.log"
     emailer = Emailer(smtp_server, smtp_username, smtp_password, smtp_port)
     last_email_time = emailer.record_email_time()
-    print(last_email_time)
+
     # if 24 hours have passed, send email
     if last_email_time: # if true, create + send email 
     # if new_value > 4:
 
+
+        # reset counter
+        with open('files/counter.txt', 'w+') as file:
+            file.write("")
+
         # write email
+
         email = emailer.create_email(sender_email, receiver_email, subject, body, attachment_path, date_string)
+
+        # send email 
+
         emailer.send_email(sender_email, receiver_email, email)
+        
+        # clear logs
+
+        with open('logs/heartbeat.log', 'w+') as file:
+            file.write("")
+
 
 
 
