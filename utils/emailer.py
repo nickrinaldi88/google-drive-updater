@@ -17,7 +17,6 @@ class Emailer:
         self.smtp_username = smtp_username
         self.smtp_password = smtp_password
 
-
     def record_email_time(self):
 
         date_format = "%Y-%m-%d %H:%M:%S.%f"
