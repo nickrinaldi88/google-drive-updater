@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import os
 import json
 import time
@@ -17,7 +19,7 @@ from utils.emailer import Emailer
 # get current datetime
 current_datetime = datetime.now()
 date_string = current_datetime.strftime("%m-%d-%Y %H:%M:%S")
-total_file_count = 0
+
 
 # get smtp user + pass
 try:
@@ -41,7 +43,6 @@ smtp_port = 587 # TLS port
 smtp_server = "smtp.gmail.com"
 
 subject = f"GOOGLE-DRIVE-UPLOADER SCRIPT LOG - {date_string}"
-body = f"The script and uploaded a total of {total_file_count} files today."
 
  ################################# LOGGING + MISC CONFIG #################################   
 
@@ -117,7 +118,7 @@ def upload_to_folder(raw_path, file_name, folder_id, drive_service):
         if status:
             print(f'Uploaded {int(status.progress())}%')
 
-    logging.info(f"*** Uploaded File: {file_metadata['name']} complete ***")
+    logging.info(f"\n *** Uploaded File: {file_metadata['name']} complete ***")
     logging.info(dash * 25)
     
 def remove_path(source_path):
@@ -184,12 +185,9 @@ def upload_and_move(source_path, destination_path):
     else:
         logging.info("No files to upload")
 
-    # add to counter
-
     # read file
     try:
         with open(counter_path, 'r') as file:
-            print("files_moved: ")
             files_moved = file.read()
     except FileNotFoundError as e:
         logging.info(e)
@@ -197,11 +195,8 @@ def upload_and_move(source_path, destination_path):
 
     try: 
         with open(counter_path, 'w') as file:
-            print("files_moved: ")
             previous_value = int(files_moved) if files_moved else 0
-            print("previous", previous_value)
             new_value = previous_value + counter
-            print("new", new_value)
             file.write(str(new_value))
     except FileNotFoundError as e:
         logging.info(e)
@@ -222,7 +217,9 @@ if __name__ == "__main__":
     if last_email_time: # if true, create + send email 
     # if new_value > 4:
 
+        # email body 
 
+        body = f"The script uploaded a total of {total_file_count} files today."
         # reset counter
         with open('files/counter.txt', 'w+') as file:
             file.write("")
